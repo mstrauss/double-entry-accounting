@@ -4,7 +4,7 @@ class CreateTransactions < ActiveRecord::Migration
       t.date    :date, :null => false
       t.integer :debit_account_id, :null => false
       t.integer :credit_account_id, :null => false
-      t.decimal :amount, :precision => 3, :null => false
+      t.decimal :amount, :null => false
       t.string  :text, :null => false
       t.text    :notes
       

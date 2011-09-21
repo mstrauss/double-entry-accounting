@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110921005219) do
+ActiveRecord::Schema.define(:version => 20110921043139) do
 
   create_table "account_types", :force => true do |t|
     t.string   "name",       :null => false
@@ -26,15 +26,15 @@ ActiveRecord::Schema.define(:version => 20110921005219) do
   end
 
   create_table "transactions", :force => true do |t|
-    t.date     "date",                                                               :null => false
-    t.integer  "debit_account_id",                                                   :null => false
-    t.integer  "credit_account_id",                                                  :null => false
-    t.decimal  "amount",            :precision => 3, :scale => 0,                    :null => false
-    t.string   "text",                                                               :null => false
+    t.date     "date",                                 :null => false
+    t.integer  "debit_account_id",                     :null => false
+    t.integer  "credit_account_id",                    :null => false
+    t.decimal  "amount",                               :null => false
+    t.string   "text",                                 :null => false
     t.text     "notes"
-    t.boolean  "locked",                                          :default => false, :null => false
+    t.boolean  "locked",            :default => false, :null => false
     t.datetime "locked_at"
-    t.boolean  "reconciled",                                      :default => false, :null => false
+    t.boolean  "reconciled",        :default => false, :null => false
     t.datetime "reconciled_at"
     t.datetime "created_at"
     t.datetime "updated_at"
