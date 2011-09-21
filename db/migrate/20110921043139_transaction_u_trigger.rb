@@ -5,7 +5,7 @@ class TransactionUiTrigger < ActiveRecord::Migration
         returns trigger as $F$
       begin
         if OLD.locked then
-          raise exception $$This record is locked and does not allow updating.$$;
+          raise exception $$This record is locked and does not allow updating of certain fields.$$;
         else
           return NEW;
         end if;

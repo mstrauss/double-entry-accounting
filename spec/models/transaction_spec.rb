@@ -21,7 +21,7 @@ def db_should_not_allow_nil_for_attribute( name )
 end
 
 def db_should_not_allow_update_attribute( name, value )
-  test_for_db_error( /Column "#{name}" cannot be updated when record is locked/ ) do
+  test_for_db_error( /This record is locked and does not allow updating of certain fields/ ) do
     @t.update_attribute( name, value )
   end
 end
