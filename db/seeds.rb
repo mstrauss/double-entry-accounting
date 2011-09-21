@@ -5,3 +5,15 @@
 #
 #   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
 #   Mayor.create(:name => 'Emanuel', :city => cities.first)
+
+# Asset Account
+AccountType.create :name => 'Aktiva'
+
+# Liability Account
+AccountType.create :name => 'Passiva'
+
+# Income Account
+AccountType.create :name => 'Erträge'
+
+# Expense Account
+AccountType.create :name => 'Aufwände'

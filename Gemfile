@@ -28,3 +28,11 @@ gem 'jquery-rails'
 # To use debugger
 # gem 'ruby-debug'
 
+gem 'haml'
+gem 'will_paginate'
+
+group :development, :test do
+  gem 'capybara'
+  gem 'rspec-rails'
+ gem 'haml-rails'
+end

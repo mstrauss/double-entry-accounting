@@ -1,4 +1,8 @@
 DoubleEntryAccounting::Application.routes.draw do
+  resources :transactions
+
+  resources :accounts
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
