@@ -21,14 +21,13 @@ def test_for_db_error( error_message, &block )
 end
 
 def db_should_not_allow_nil_for_attribute( name )
-  t = Transaction.new( valid_transaction )
+  db_should_not_allow_update_attribute( name, nil )
   test_for_db_error( "Column '#{name}' cannot be null" ) do
-    t.update_attribute( name, nil )
-    t.save!
+    @t.update_attribute( name, nil )
   end
 end
 
-def when_locked_db_should_not_allow_update_attribute( name, value )
+def db_should_not_allow_update_attribute( name, value )
   test_for_db_error( "Column '#{name}' cannot be updated when record is locked") do
     @t.update_attribute( name, value )
   end
@@ -36,7 +35,11 @@ end
 
 describe Transaction do
 
-  describe 'save' do
+  before(:each) do
+    @t = Transaction.new( valid_transaction )
+  end
+
+  describe 'save whole record at once' do
     it 'should fail without date' do
       db_should_not_allow_nil_for_attribute( :date ) end
     it 'should fail without amount' do
@@ -49,29 +52,45 @@ describe Transaction do
       db_should_not_allow_nil_for_attribute( :text ) end
   end
   
+  describe 'saving a single attribute' do
+    before(:each) do
+      @t.save!
+      @t.reload
+    end
+    it 'should fail on date' do
+      db_should_not_allow_nil_for_attribute( :date ) end
+    it 'should fail on amount' do
+      db_should_not_allow_nil_for_attribute( :amount ) end
+    it 'should fail on debit account' do
+      db_should_not_allow_nil_for_attribute( :debit_account_id ) end
+    it 'should fail on credit account' do
+      db_should_not_allow_nil_for_attribute( :credit_account_id ) end
+    it 'should fail on text' do
+      db_should_not_allow_nil_for_attribute( :text ) end
+  end
+  
   
   # 'locked' is a user-settable flag, anytime
   describe 'when locked' do
 
     before(:each) do
-      @t = Transaction.new( valid_transaction.update( :locked => true) )
-      @t.save!
+      @t.locked = true
     end
 
     it 'should not be possible to change the amount' do
-      when_locked_db_should_not_allow_update_attribute( :amount, 99 ) end
+      db_should_not_allow_update_attribute( :amount, 99 ) end
     it 'should not be possible to change the date' do
-      when_locked_db_should_not_allow_update_attribute( :date, Date.today - 5.days ) end
+      db_should_not_allow_update_attribute( :date, Date.today - 5.days ) end
     it 'should not be possible to change the transaction text' do
-      when_locked_db_should_not_allow_update_attribute( :text, 'new transaction text' ) end
+      db_should_not_allow_update_attribute( :text, 'new transaction text' ) end
     it 'should not be possible to change the debit account' do
-      when_locked_db_should_not_allow_update_attribute( :debit_account_id, 123 ) end
+      db_should_not_allow_update_attribute( :debit_account_id, 123 ) end
     it 'should not be possible to change the credit account' do
-      when_locked_db_should_not_allow_update_attribute( :credit_account_id, 123 ) end
+      db_should_not_allow_update_attribute( :credit_account_id, 123 ) end
     it 'should not be possible to change the transaction notes' do
-      when_locked_db_should_not_allow_update_attribute( :notes, 'some new notes' ) end      
+      db_should_not_allow_update_attribute( :notes, 'some new notes' ) end      
     it 'should not be possible to reconcile the transaction' do
-      when_locked_db_should_not_allow_update_attribute( :reconciled, true ) end      
+      db_should_not_allow_update_attribute( :reconciled, true ) end      
 
     it 'should set the locked_at datetime when locked'
     it 'should reset the locked_at datetime when unlocked'
