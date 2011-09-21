@@ -9,26 +9,19 @@ def valid_transaction
 end
 
 def test_for_db_error( error_message, &block )
-  begin
-    yield
-  rescue ActiveRecord::StatementInvalid
-    database_threw = true
-  rescue
-    something_else_threw = true
-  end
-  assert !something_else_threw, "There is an error in our test code"
-  assert database_threw && !something_else_threw, error_message
+  lambda{ yield }.should raise_error(ActiveRecord::StatementInvalid, error_message) 
+  # assert !something_else_threw, "There is an error in our test code"
+  # assert database_threw && !something_else_threw, error_message
 end
 
 def db_should_not_allow_nil_for_attribute( name )
-  db_should_not_allow_update_attribute( name, nil )
-  test_for_db_error( "Column '#{name}' cannot be null" ) do
+  test_for_db_error( /null value in column "#{name}" violates not-null constraint/ ) do
     @t.update_attribute( name, nil )
   end
 end
 
 def db_should_not_allow_update_attribute( name, value )
-  test_for_db_error( "Column '#{name}' cannot be updated when record is locked") do
+  test_for_db_error( /Column "#{name}" cannot be updated when record is locked/ ) do
     @t.update_attribute( name, value )
   end
 end
@@ -75,6 +68,8 @@ describe Transaction do
 
     before(:each) do
       @t.locked = true
+      @t.save!
+      @t.reload
     end
 
     it 'should not be possible to change the amount' do
