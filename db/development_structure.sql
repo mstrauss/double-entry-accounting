@@ -19,18 +19,87 @@ CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;
 SET search_path = public, pg_catalog;
 
 --
--- Name: check_update_allowed(); Type: FUNCTION; Schema: public; Owner: -
+-- Name: transaction_update_timestamps(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_update_allowed() RETURNS trigger
+CREATE FUNCTION transaction_update_timestamps() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      begin
+        -- update
+        if OLD != NULL then
+          if OLD.reconciled = false and NEW.reconciled = true then
+            NEW.locked := true;
+          end if;
+          if OLD.locked = true then
+            -- unlocking record
+            if NEW.locked = false then
+              NEW.locked_at := _null_;
+            end if;
+          else
+            -- locking record
+            if NEW.locked = true then
+              NEW.locked_at := current_timestamp;
+            end if;
+          end if;
+        else
+          -- insert
+          if NEW.reconciled then
+            NEW.reconciled_at := current_timestamp;
+            NEW.locked := true;
+          end if;
+          if NEW.locked then
+            NEW.locked_at := current_timestamp;
+          end if;
+        end if;
+        return NEW;
+      end
+      $$;
+
+
+--
+-- Name: transaction_validate_on_update(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION transaction_validate_on_update() RETURNS trigger
     LANGUAGE plpgsql
     AS $_$
       begin
-        if OLD.locked then
-          raise exception $$This record is locked and does not allow updating of certain fields.$$;
-        else
-          return NEW;
+        if OLD.reconciled = true then
+          if NEW.reconciled = false then
+            raise exception $$It is not possible to unreconcile a transaction after it has been reconciled.$$;
+          elsif OLD.debit_account_id IS DISTINCT FROM NEW.debit_account_id then
+            raise exception $$This record is reconciled and does not allow updating 'debit_account_id'.$$;
+          elsif OLD.credit_account_id IS DISTINCT FROM NEW.credit_account_id then
+            raise exception $$This record is reconciled and does not allow updating 'credit_account_id'.$$;
+          elsif OLD.amount IS DISTINCT FROM NEW.amount then
+            raise exception $$This record is reconciled and does not allow updating 'amount'.$$;
+          elsif OLD.reconciled IS DISTINCT FROM NEW.reconciled then
+            raise exception $$This record is reconciled and does not allow updating 'reconciled'.$$;
+          elsif OLD.date IS DISTINCT FROM NEW.date then
+            raise exception $$This record is reconciled and does not allow updating 'date'.$$;
+          elsif OLD.text IS DISTINCT FROM NEW.text then
+            raise exception $$This record is reconciled and does not allow updating 'text'.$$;
+          end if;
         end if;
+        if OLD.locked = true then
+          if OLD.debit_account_id IS DISTINCT FROM NEW.debit_account_id then
+            raise exception $$This record is locked and does not allow updating 'debit_account_id'.$$;
+          elsif OLD.credit_account_id IS DISTINCT FROM NEW.credit_account_id then
+            raise exception $$This record is locked and does not allow updating 'credit_account_id'.$$;
+          elsif OLD.amount IS DISTINCT FROM NEW.amount then
+            raise exception $$This record is locked and does not allow updating 'amount'.$$;
+          elsif OLD.reconciled IS DISTINCT FROM NEW.reconciled then
+            raise exception $$This record is locked and does not allow updating 'reconciled'.$$;
+          elsif OLD.date IS DISTINCT FROM NEW.date then
+            raise exception $$This record is locked and does not allow updating 'date'.$$;
+          elsif OLD.text IS DISTINCT FROM NEW.text then
+            raise exception $$This record is locked and does not allow updating 'text'.$$;
+          elsif OLD.notes IS DISTINCT FROM NEW.notes then
+            raise exception $$This record is locked and does not allow updating 'notes'.$$;
+          end if;
+        end if;
+        return NEW;
       end
       $_$;
 
@@ -239,10 +308,17 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 
 
 --
--- Name: check_update_allowed_u_trigger; Type: TRIGGER; Schema: public; Owner: -
+-- Name: transaction_update_timestamps_ui_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER check_update_allowed_u_trigger BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE PROCEDURE check_update_allowed();
+CREATE TRIGGER transaction_update_timestamps_ui_trigger BEFORE INSERT OR UPDATE ON transactions FOR EACH ROW EXECUTE PROCEDURE transaction_update_timestamps();
+
+
+--
+-- Name: transaction_validate_u_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER transaction_validate_u_trigger BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE PROCEDURE transaction_validate_on_update();
 
 
 --
@@ -256,3 +332,5 @@ INSERT INTO schema_migrations (version) VALUES ('20110920234137');
 INSERT INTO schema_migrations (version) VALUES ('20110921005219');
 
 INSERT INTO schema_migrations (version) VALUES ('20110921043139');
+
+INSERT INTO schema_migrations (version) VALUES ('20110921230047');
