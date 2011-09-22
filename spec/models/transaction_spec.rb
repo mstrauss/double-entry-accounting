@@ -21,7 +21,7 @@ def db_should_not_allow_nil_for_attribute( name )
 end
 
 def db_should_not_allow_update_attribute( name, value )
-  test_for_db_error( /This record is locked and does not allow updating of certain fields/ ) do
+  test_for_db_error( /This record is (locked|reconciled) and does not allow updating '#{name}'/ ) do
     @t.update_attribute( name, value )
   end
 end
@@ -37,8 +37,6 @@ shared_examples_for 'any locked or reconciled transaction' do
     db_should_not_allow_update_attribute( :debit_account_id, 123 ) end
   it 'should not be possible to change the credit account' do
     db_should_not_allow_update_attribute( :credit_account_id, 123 ) end
-  it 'should not be possible to change the transaction notes' do
-    db_should_not_allow_update_attribute( :notes, 'some new notes' ) end      
 end
 
 describe Transaction do
@@ -65,16 +63,18 @@ describe Transaction do
       @t.save!
       @t.reload
     end
-    it 'should fail on date' do
+    it 'should fail on nil date' do
       db_should_not_allow_nil_for_attribute( :date ) end
-    it 'should fail on amount' do
+    it 'should fail on nil amount' do
       db_should_not_allow_nil_for_attribute( :amount ) end
-    it 'should fail on debit account' do
+    it 'should fail on nil debit account' do
       db_should_not_allow_nil_for_attribute( :debit_account_id ) end
-    it 'should fail on credit account' do
+    it 'should fail on nil credit account' do
       db_should_not_allow_nil_for_attribute( :credit_account_id ) end
-    it 'should fail on text' do
+    it 'should fail on nil text' do
       db_should_not_allow_nil_for_attribute( :text ) end
+    it 'should not fail on nil notes' do
+      @t.update_attribute( :notes, nil ).should == true end
   end
   
   
@@ -89,14 +89,18 @@ describe Transaction do
 
     it_behaves_like 'any locked or reconciled transaction'
 
+    it 'should not be possible to change the transaction notes' do
+      db_should_not_allow_update_attribute( :notes, 'some new notes' ) end      
+
     it 'should not be possible to reconcile the transaction' do
       db_should_not_allow_update_attribute( :reconciled, true ) end      
 
     it 'should set the locked_at datetime when locked' do
-      @t.locked_at.should == DateTime.now
+      @t.locked_at.to_i.should == DateTime.now.to_i
     end      
     it 'should reset the locked_at datetime when unlocked' do
       @t.update_attribute( :locked, false )
+      # @t.reload
       @t.locked_at.should == nil
     end
     
@@ -117,7 +121,7 @@ describe Transaction do
     it_behaves_like 'any locked or reconciled transaction'
     
     it 'should set the reconciled_at datetime when reconciled' do
-      @t.reconciled_at.should == DateTime.now
+      @t.reconciled_at.to_i.should == DateTime.now.to_i
     end
     
     it 'should not be possibe to reset the reconciled flag' do
