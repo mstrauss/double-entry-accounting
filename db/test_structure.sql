@@ -125,6 +125,48 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: accounts; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE accounts (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    account_type_id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: transactions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE transactions (
+    id integer NOT NULL,
+    date date NOT NULL,
+    debit_account_id integer NOT NULL,
+    credit_account_id integer NOT NULL,
+    amount numeric NOT NULL,
+    text character varying(255) NOT NULL,
+    notes text,
+    locked boolean DEFAULT false NOT NULL,
+    locked_at timestamp without time zone,
+    reconciled boolean DEFAULT false NOT NULL,
+    reconciled_at timestamp without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: account_transactions; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW account_transactions AS
+    WITH account_transactions_with_line_saldo AS (SELECT accounts.id AS account_id, transactions.id AS transaction_id, transactions.date, transactions.text, CASE WHEN (transactions.debit_account_id = accounts.id) THEN transactions.amount ELSE (0)::numeric END AS debit_amount, CASE WHEN (transactions.credit_account_id = accounts.id) THEN transactions.amount ELSE (0)::numeric END AS credit_amount, CASE WHEN (transactions.debit_account_id = accounts.id) THEN transactions.amount WHEN (transactions.credit_account_id = accounts.id) THEN (- transactions.amount) ELSE NULL::numeric END AS line_saldo FROM accounts, transactions WHERE ((transactions.debit_account_id = accounts.id) OR (transactions.credit_account_id = accounts.id)) ORDER BY accounts.id, transactions.date, transactions.id) SELECT account_transactions_with_line_saldo.account_id, account_transactions_with_line_saldo.transaction_id, account_transactions_with_line_saldo.date, account_transactions_with_line_saldo.text, account_transactions_with_line_saldo.debit_amount, account_transactions_with_line_saldo.credit_amount, account_transactions_with_line_saldo.line_saldo, sum(account_transactions_with_line_saldo.line_saldo) OVER (PARTITION BY account_transactions_with_line_saldo.account_id ORDER BY account_transactions_with_line_saldo.date, account_transactions_with_line_saldo.transaction_id) AS saldo FROM account_transactions_with_line_saldo;
+
+
+--
 -- Name: account_types; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -156,19 +198,6 @@ ALTER SEQUENCE account_types_id_seq OWNED BY account_types.id;
 
 
 --
--- Name: accounts; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE accounts (
-    id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    account_type_id integer NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
 -- Name: accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -193,27 +222,6 @@ ALTER SEQUENCE accounts_id_seq OWNED BY accounts.id;
 
 CREATE TABLE schema_migrations (
     version character varying(255) NOT NULL
-);
-
-
---
--- Name: transactions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE transactions (
-    id integer NOT NULL,
-    date date NOT NULL,
-    debit_account_id integer NOT NULL,
-    credit_account_id integer NOT NULL,
-    amount numeric NOT NULL,
-    text character varying(255) NOT NULL,
-    notes text,
-    locked boolean DEFAULT false NOT NULL,
-    locked_at timestamp without time zone,
-    reconciled boolean DEFAULT false NOT NULL,
-    reconciled_at timestamp without time zone,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
 );
 
 
@@ -383,3 +391,5 @@ INSERT INTO schema_migrations (version) VALUES ('20110921043139');
 INSERT INTO schema_migrations (version) VALUES ('20110921230047');
 
 INSERT INTO schema_migrations (version) VALUES ('20111106024034');
+
+INSERT INTO schema_migrations (version) VALUES ('20111106181910');

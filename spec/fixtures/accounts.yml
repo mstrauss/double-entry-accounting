@@ -1,0 +1,15 @@
+cash_account:
+  name: "Cash Account"
+  account_type_id: 1
+  
+liabilities_account:
+  name: "Liabilities Account"
+  account_type: 2
+  
+earnings_account:
+  name: "Earnings Account"
+  account_type_id: 3
+  
+expenses_account:
+  name: "Expenses Account"
+  account_type_id: 4

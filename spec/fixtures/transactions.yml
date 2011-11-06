@@ -1,0 +1,6 @@
+example_cash_transaction:
+  date: "2010-12-01"
+  debit_account: expenses_account
+  credit_account: cash_account
+  text: "Buying something with cash"
+  amount: 52.5

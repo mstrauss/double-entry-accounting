@@ -201,4 +201,13 @@ describe Transaction do
     end
   end
   
+  # rails helpers for referential integrity
+  it 'must have accessible debit_account' do
+    @t.debit_account
+  end
+
+  it 'must have accessible credit_account' do
+    @t.credit_account
+  end
+  
 end
