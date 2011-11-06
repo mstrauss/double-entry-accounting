@@ -26,16 +26,16 @@ gem 'jquery-rails'
 # Deploy with Capistrano
 # gem 'capistrano'
 
-# To use debugger
-# gem 'ruby-debug'
-
 gem 'haml'
 gem 'will_paginate'
+gem 'importer'
 
 group :development, :test do
   gem 'capybara'
   gem 'rspec-rails'
- gem 'haml-rails'
+  gem 'haml-rails'
+  # To use debugger
+  gem 'ruby-debug'
 end
 
 # = Additional plugins (not gems)
