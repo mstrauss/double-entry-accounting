@@ -4,6 +4,9 @@ class TransactionValidateUpdateTrigger < ActiveRecord::Migration
       create or replace function transaction_validate_on_update()
         returns trigger as $F$
       begin
+        if NEW.debit_account_id IS NOT DISTINCT FROM NEW.credit_account_id then
+          raise exception $$Debit and credit accounts cannot be identical.$$;
+        end if;
         if OLD.reconciled = true then
           if NEW.reconciled = false then
             raise exception $$It is not possible to unreconcile a transaction after it has been reconciled.$$;

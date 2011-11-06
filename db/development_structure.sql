@@ -65,6 +65,9 @@ CREATE FUNCTION transaction_validate_on_update() RETURNS trigger
     LANGUAGE plpgsql
     AS $_$
       begin
+        if NEW.debit_account_id IS NOT DISTINCT FROM NEW.credit_account_id then
+          raise exception $$Debit and credit accounts cannot be identical.$$;
+        end if;
         if OLD.reconciled = true then
           if NEW.reconciled = false then
             raise exception $$It is not possible to unreconcile a transaction after it has been reconciled.$$;
@@ -319,6 +322,30 @@ CREATE TRIGGER transaction_update_timestamps_ui_trigger BEFORE INSERT OR UPDATE 
 --
 
 CREATE TRIGGER transaction_validate_u_trigger BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE PROCEDURE transaction_validate_on_update();
+
+
+--
+-- Name: accounts_account_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY accounts
+    ADD CONSTRAINT accounts_account_type_id_fkey FOREIGN KEY (account_type_id) REFERENCES account_types(id);
+
+
+--
+-- Name: transactions_credit_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY transactions
+    ADD CONSTRAINT transactions_credit_account_id_fkey FOREIGN KEY (credit_account_id) REFERENCES accounts(id);
+
+
+--
+-- Name: transactions_debit_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY transactions
+    ADD CONSTRAINT transactions_debit_account_id_fkey FOREIGN KEY (debit_account_id) REFERENCES accounts(id);
 
 
 --

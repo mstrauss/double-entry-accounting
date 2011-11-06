@@ -1,10 +1,40 @@
 require 'spec_helper'
 
+def good_account
+  return @good_account if @good_account
+  @good_account = Account.new(
+    :name => 'good account',
+    :account_type_id => 1 )
+  @good_account.save!
+  @good_account
+end
+
+def good_account_id
+  good_account[:id]
+end
+
+def another_good_account
+  return @another_good_account if @another_good_account
+  @another_good_account = Account.new(
+    :name => 'another good account',
+    :account_type_id => 2 )
+  @another_good_account.save!
+  @another_good_account
+end
+
+def another_good_account_id
+  another_good_account[:id]
+end
+
+def bad_account_id
+  Account.find(:last, :select => 'id', :order => 'id')[:id] + 1
+end
+
 def valid_transaction
   { :date => Date.today,
     :amount => 12.345,
-    :debit_account_id => 1,
-    :credit_account_id => 2,
+    :debit_account_id => good_account_id,
+    :credit_account_id => another_good_account_id,
     :text => 'transaction text' }
 end
 
@@ -147,6 +177,28 @@ describe Transaction do
     on_update_and_reload_amount_should_remain_unchanged( '123456789.123' )
     on_update_and_reload_amount_should_remain_unchanged( '12345.6789' )
     on_update_and_reload_amount_should_remain_unchanged( '1234567890123.998877665544' )
+  end
+  
+  # referencial integrity
+  it 'must allow only existing debit account ids' do
+    test_for_db_error( /violates foreign key constraint/ ) do
+      @t.update_attribute( :debit_account_id, bad_account_id )
+    end
+    @t.update_attribute( :debit_account_id, good_account_id )
+  end
+  
+  it 'must allow only existing credit account ids' do
+    test_for_db_error( /violates foreign key constraint/ ) do
+      @t.update_attribute( :credit_account_id, bad_account_id )
+    end
+    @t.update_attribute( :credit_account_id, good_account_id )
+  end
+
+  it 'must not allow identical credit and debit accounts' do
+    test_for_db_error( /Debit and credit accounts cannot be identical/ ) do
+      @t.update_attribute( :credit_account_id, good_account_id )
+      @t.update_attribute( :debit_account_id, good_account_id )
+    end
   end
   
 end

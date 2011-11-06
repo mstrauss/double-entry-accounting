@@ -2,8 +2,9 @@ class CreateTransactions < ActiveRecord::Migration
   def change
     create_table :transactions do |t|
       t.date    :date, :null => false
-      t.integer :debit_account_id, :null => false
-      t.integer :credit_account_id, :null => false
+      # references provided by fk_constraints plugin
+      t.integer :debit_account_id,  :null => false, :references => :accounts
+      t.integer :credit_account_id, :null => false, :references => :accounts
       t.decimal :amount, :null => false
       t.string  :text, :null => false
       t.text    :notes
