@@ -1,11 +1,11 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.1.0'
+gem 'rails', '~>3.1.0'
 
 # Bundle edge Rails instead:
 # gem 'rails',     :git => 'git://github.com/rails/rails.git'
 
-# gem 'mysql2'
+# postgres only (sorry, need a *real* database)
 gem 'pg'
 
 gem 'json'
@@ -37,3 +37,6 @@ group :development, :test do
   gem 'rspec-rails'
  gem 'haml-rails'
 end
+
+# = Additional plugins (not gems)
+# * git submodule add git://github.com/mstrauss/fk_constraints.git vendor/plugins/fk_constraints
