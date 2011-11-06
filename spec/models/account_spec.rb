@@ -15,11 +15,16 @@ describe Account do
   it 'should always be one of the four account types'
   it 'should not be possible to delete the account if it has any transactions'
   
-  it 'should be an AccountTransaction' do
-    account_transaction.class.should == AccountTransaction
+  describe 'saldo' do
+    it 'should return the current saldo' do
+      accounts(:cash_account).saldo.should == -52.5
+    end
   end
   
   describe 'AccountTransaction' do
+    it 'should be an AccountTransaction' do
+      account_transaction.class.should == AccountTransaction
+    end
     it 'should include the date' do
       account_transaction.respond_to?(:date).should== true
     end
