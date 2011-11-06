@@ -65,9 +65,6 @@ CREATE FUNCTION transaction_validate_on_update() RETURNS trigger
     LANGUAGE plpgsql
     AS $_$
       begin
-        if NEW.debit_account_id IS NOT DISTINCT FROM NEW.credit_account_id then
-          raise exception $$Debit and credit accounts cannot be identical.$$;
-        end if;
         if OLD.reconciled = true then
           if NEW.reconciled = false then
             raise exception $$It is not possible to unreconcile a transaction after it has been reconciled.$$;
@@ -101,6 +98,22 @@ CREATE FUNCTION transaction_validate_on_update() RETURNS trigger
           elsif OLD.notes IS DISTINCT FROM NEW.notes then
             raise exception $$This record is locked and does not allow updating 'notes'.$$;
           end if;
+        end if;
+        return NEW;
+      end
+      $_$;
+
+
+--
+-- Name: transaction_validate_on_update_insert(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION transaction_validate_on_update_insert() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $_$
+      begin
+        if NEW.debit_account_id IS NOT DISTINCT FROM NEW.credit_account_id then
+          raise exception $$Debit and credit accounts cannot be identical.$$;
         end if;
         return NEW;
       end
@@ -318,6 +331,13 @@ CREATE TRIGGER transaction_update_timestamps_ui_trigger BEFORE INSERT OR UPDATE 
 
 
 --
+-- Name: transaction_validate_on_update_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER transaction_validate_on_update_insert_trigger BEFORE INSERT OR UPDATE ON transactions FOR EACH ROW EXECUTE PROCEDURE transaction_validate_on_update_insert();
+
+
+--
 -- Name: transaction_validate_u_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -361,3 +381,5 @@ INSERT INTO schema_migrations (version) VALUES ('20110921005219');
 INSERT INTO schema_migrations (version) VALUES ('20110921043139');
 
 INSERT INTO schema_migrations (version) VALUES ('20110921230047');
+
+INSERT INTO schema_migrations (version) VALUES ('20111106024034');

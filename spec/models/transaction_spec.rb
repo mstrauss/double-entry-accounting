@@ -191,7 +191,7 @@ describe Transaction do
     test_for_db_error( /violates foreign key constraint/ ) do
       @t.update_attribute( :credit_account_id, bad_account_id )
     end
-    @t.update_attribute( :credit_account_id, good_account_id )
+    @t.update_attribute( :credit_account_id, another_good_account_id )
   end
 
   it 'must not allow identical credit and debit accounts' do
