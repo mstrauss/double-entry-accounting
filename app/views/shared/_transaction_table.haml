@@ -1,0 +1,9 @@
+%table
+  %tr
+    %th Date
+    %th Text
+    %th Debit
+    %th Credit
+    %th Saldo
+    - object.each do |transaction|
+      = render 'shared/transaction', :object => transaction

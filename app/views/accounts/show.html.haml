@@ -1,0 +1,9 @@
+%h1= @account.name
+
+%p#notice= notice
+
+= render 'shared/transaction_table', :object => @account.transactions
+  
+= link_to 'Edit', edit_account_path(@account)
+\|
+= link_to 'Back', accounts_path

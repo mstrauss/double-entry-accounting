@@ -1,0 +1,31 @@
+%h1 Accounts Overview
+
+- AccountType.all.each do |account_type|
+  %h2= account_type.name
+  %table
+    %tr
+      %th No.
+      %th Name
+      %th Type
+      %th Saldo
+      %th
+      %th
+      %th
+    - account_type.accounts.each do |account|
+      %tr
+        %td= account.id
+        %td= account.name
+        %td= account.type
+        %td= format_number( account.saldo )
+        %td= link_to 'Show', account
+        %td= link_to 'Edit', edit_account_path(account)
+        %td= link_to 'Destroy', account, :confirm => 'Are you sure?', :method => :delete
+    %tr
+      %td
+      %td
+      %td
+      %td= format_number( account_type.saldo )
+
+%br
+
+= link_to 'New Account', new_account_path
