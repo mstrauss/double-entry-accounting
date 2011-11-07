@@ -3,7 +3,8 @@ class Account < ActiveRecord::Base
   has_many :transactions, :class_name => 'AccountTransaction'
   
   def saldo
-    self.transactions.find(:last, :order => [:date,:transaction_id]).saldo
+    t = self.transactions.find(:last, :order => [:date,:transaction_id])
+    t.nil? ? 0 : t.saldo
   end
   
 end
