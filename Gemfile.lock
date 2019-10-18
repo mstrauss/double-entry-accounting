@@ -48,7 +48,8 @@ GEM
       execjs
     coffee-script-source (1.1.2)
     columnize (0.3.4)
-    crack (0.3.1)
+    crack (0.4.3)
+      safe_yaml (~> 1.0.0)
     diff-lcs (1.1.3)
     erubis (2.7.0)
     execjs (1.2.9)
@@ -130,6 +131,7 @@ GEM
     ruby-debug-base (0.10.4)
       linecache (>= 0.3)
     rubyzip (0.9.4)
+    safe_yaml (1.0.5)
     sass (3.1.10)
     sass-rails (3.1.4)
       actionpack (~> 3.1.0)
